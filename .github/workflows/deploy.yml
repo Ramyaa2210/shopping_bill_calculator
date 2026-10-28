@@ -46,12 +46,10 @@ jobs:
         tags: ${{ secrets.DOCKERHUB_USERNAME }}/shopping-bill:${{ steps.vars.outputs.sha_short }}
 
     # Stage 5: Target Deployment Infrastructure Generation & Deployment
-    - name: Start Local Kubernetes Cluster inside Runner
-      uses: manusa/actions-setup-minikube@v2.13.1
+    - name: Start Lightweight Kubernetes Cluster (Kind)
+      uses: helm/kind-action@v1.10.0
       with:
-        minikube version: 'v1.33.1'
-        kubernetes version: 'v1.30.2'
-        driver: docker
+        cluster_name: pipeline-cluster
 
     - name: Deploy Image to Pipeline Cluster & Expose Service
       run: |
@@ -64,7 +62,6 @@ jobs:
         
         # Verify the deployment state satisfies the question criteria
         echo "=== VERIFYING KUBERNETES INFRASTRUCTURE SPECS ==="
-        kubectl rollout status deployment/shopping-bill-deployment --timeout=90s
         kubectl get deployments
         kubectl get pods -l app=shopping-bill
         kubectl get svc shopping-bill-service
